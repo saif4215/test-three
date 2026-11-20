@@ -1,0 +1,57 @@
+# A starting point for hosting on Render (https://render.com). Review the plan names and regions before using it.
+# Secrets marked `sync: false` are asked for in the dashboard; nothing secret lives in this file.
+services:
+  - type: web
+    name: icsi-store
+    runtime: docker
+    plan: starter
+    healthCheckPath: /api/health
+    # Uploaded pictures live on a persistent disk (or switch to S3-compatible storage: see README).
+    disk:
+      name: uploads
+      mountPath: /data/uploads
+      sizeGB: 5
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: icsi-db
+          property: connectionString
+      - key: APP_SECRET
+        generateValue: true
+      # The public address of the site, e.g. https://store.example.org (no trailing slash).
+      - key: APP_URL
+        sync: false
+      - key: STORAGE_DRIVER
+        value: local
+      # Needed only once, to create the first Owner at /admin/setup. Remove it afterwards.
+      - key: ADMIN_SETUP_TOKEN
+        sync: false
+      # Optional services: leave blank until you are ready. Each stays OFF until verified in Admin > Settings.
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        sync: false
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: SMTP_SECURE
+        sync: false
+      - key: EMAIL_FROM
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+
+databases:
+  - name: icsi-db
+    plan: basic-256mb
+    databaseName: icsi_store
+    user: icsi
