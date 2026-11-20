@@ -9,6 +9,7 @@ import { fromLocalInput } from "@/lib/format";
 import { slugify, safeUrl } from "@/lib/util";
 import { sendEmail } from "@/lib/email";
 import { testEmail } from "@/lib/email-templates";
+import { issueMessage } from "@/lib/zod-message";
 
 export async function saveFeaturesAction(_prev: ActionState, form: FormData): Promise<ActionState> {
   const res = await adminAction("settings.manage", async (admin, ip) => {
@@ -107,8 +108,7 @@ export async function saveSettingsAction(_prev: ActionState, form: FormData): Pr
       adminGoogleDomain: g("adminGoogleDomain").replace(/^@/, ""),
     });
     if (!parsed.success) {
-      const issue = parsed.error.issues[0];
-      throw new UserError(issue.message && !/^(Required|Invalid)/.test(issue.message) ? issue.message : `Please check the “${issue.path.join(" › ")}” setting.`);
+      throw new UserError(issueMessage(parsed.error.issues[0], "setting"));
     }
     await saveStoreSettings(parsed.data, { id: admin.id, label: admin.email }, ip);
     return "Settings saved.";

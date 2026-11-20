@@ -5,6 +5,7 @@ import { query, tx } from "../db";
 import { audit, type Actor } from "../audit";
 import { UserError } from "../errors";
 import { slugify } from "../util";
+import { issueMessage } from "../zod-message";
 
 /* ------------------------------------------------------------------ input validation */
 
@@ -52,8 +53,7 @@ export type VariantInput = z.infer<typeof variantInputSchema>;
 export function prepareProductInput(raw: unknown): ProductInput {
   const parsed = productInputSchema.safeParse(raw);
   if (!parsed.success) {
-    const issue = parsed.error.issues[0];
-    throw new UserError(issue.message && issue.message !== "Required" ? issue.message : `Please check the “${issue.path.join(" › ") || "form"}” field.`);
+    throw new UserError(issueMessage(parsed.error.issues[0]));
   }
   const input = parsed.data;
   if (input.salePriceCents !== null && input.salePriceCents >= input.priceCents) throw new UserError("The sale price must be lower than the regular price.");

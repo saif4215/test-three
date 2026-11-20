@@ -3,6 +3,7 @@ import { z } from "zod";
 import { query, tx, type Db } from "./db";
 import { audit, type Actor } from "./audit";
 import { UserError } from "./errors";
+import { issueMessage } from "./zod-message";
 
 export interface Promotion {
   id: string;
@@ -62,7 +63,7 @@ export async function getPromotion(id: string): Promise<Promotion | null> {
 
 export async function savePromotion(raw: unknown, actor: Actor, ip: string | null = null): Promise<string> {
   const parsed = promotionInputSchema.safeParse(raw);
-  if (!parsed.success) throw new UserError(parsed.error.issues[0].message);
+  if (!parsed.success) throw new UserError(issueMessage(parsed.error.issues[0]));
   const i = parsed.data;
   if (i.kind === "percent" && i.value > 100) throw new UserError("A percentage can’t be more than 100.");
   if (i.startsAt && i.endsAt && i.endsAt <= i.startsAt) throw new UserError("“Ends” must be after “Starts”.");
