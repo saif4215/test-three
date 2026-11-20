@@ -34,6 +34,14 @@ export const env = {
   get databaseSsl() {
     return str("DATABASE_SSL") === "1";
   },
+  /**
+   * How many reverse proxies sit in front of the app and append to X-Forwarded-For (1 for most hosts; 0 if the app is
+   * reached directly, in which case that header is ignored because anyone can forge it).
+   */
+  get trustedProxyHops() {
+    const n = Number(str("TRUSTED_PROXY_HOPS", "1"));
+    return Number.isInteger(n) && n >= 0 && n <= 5 ? n : 1;
+  },
   /** If set, /admin/setup can create the very first owner (a one-time page that closes itself once an admin exists). */
   get adminSetupToken() {
     return str("ADMIN_SETUP_TOKEN");

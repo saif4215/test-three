@@ -41,7 +41,9 @@ A new store is **browse-only**: open *Admin → Settings → Feature switches* a
 4. Build and start: `npm run build && npm run db:migrate && npm run db:seed && npm start`, or use the included `Dockerfile` / `render.yaml` (these two have **not** been run in this build environment: review them first).
 5. Create the first Owner: either run `npm run admin:create` on the server, or set `ADMIN_SETUP_TOKEN` and open `/admin/setup` once (the page closes itself as soon as any administrator exists; remove the token afterwards).
 
-Behind a proxy, make sure it sets `X-Forwarded-For`, because rate limits use it.
+Rate limits use the visitor's address. Run the app behind your host's proxy (which appends it to `X-Forwarded-For`); `TRUSTED_PROXY_HOPS` (default 1) says how many proxies to trust, and `0` ignores the header when the app is reached directly. The address a visitor forges at the start of that header is never used.
+
+Point your host's health check at `/api/health`: it also runs the small housekeeping job (cancels abandoned card orders, clears expired sessions and old counters) at most once every five minutes.
 
 ## Turning on the outside services
 

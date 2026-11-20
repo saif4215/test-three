@@ -18,11 +18,16 @@ export async function seedBaseline() {
   const { pool } = await import("../src/lib/db");
   const { runMigrations } = await import("../src/lib/migrate");
   await runMigrations(pool());
-  const existing = await pool().query("select count(*)::int as n from categories");
-  if (existing.rows[0].n === 0) {
-    for (const c of CATEGORIES) {
-      await pool().query("insert into categories (name, slug, sort, show_on_home) values ($1, $2, $3, true) on conflict (slug) do nothing", [c.name, c.slug, c.sort]);
+  // The suggested categories are added ONCE. If the team later deletes or renames them, a restart must not bring them back.
+  const done = await pool().query("select 1 from settings where key = 'baseline_categories_seeded'");
+  if (!done.rowCount) {
+    const existing = await pool().query("select count(*)::int as n from categories");
+    if (existing.rows[0].n === 0) {
+      for (const c of CATEGORIES) {
+        await pool().query("insert into categories (name, slug, sort, show_on_home) values ($1, $2, $3, true) on conflict (slug) do nothing", [c.name, c.slug, c.sort]);
+      }
     }
+    await pool().query("insert into settings (key, value) values ('baseline_categories_seeded', 'true'::jsonb) on conflict (key) do nothing");
   }
   for (const [slug, title] of [["returns", "Returns"], ["terms", "Terms of sale"], ["privacy", "Privacy"]]) {
     await pool().query("insert into pages (slug, title, body_md, approved) values ($1, $2, '', false) on conflict (slug) do nothing", [slug, title]);

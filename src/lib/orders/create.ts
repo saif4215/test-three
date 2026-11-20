@@ -7,6 +7,7 @@ import { newOrderNumber } from "../crypto";
 import { getFeatures, loadStoreSettings, orderingStatus, type StoreSettings } from "../settings";
 import { cartItemsSchema, priceCart, type Quote } from "./quote";
 import { trackingPath } from "./tracking-code";
+import { issueMessage } from "../zod-message";
 
 export const studentSchema = z.object({ name: z.string().trim().max(80), grade: z.string().trim().max(40) });
 export type Student = z.infer<typeof studentSchema>;
@@ -71,7 +72,7 @@ async function insertOrder(c: PoolClient, args: { orderNumber: string; input: Ch
  */
 export async function placeOrder(raw: unknown, opts: { customerId?: string | null } = {}): Promise<PlacedOrder> {
   const parsed = checkoutSchema.safeParse(raw);
-  if (!parsed.success) throw new UserError(parsed.error.issues[0].message);
+  if (!parsed.success) throw new UserError(issueMessage(parsed.error.issues[0]));
   const input = parsed.data;
   const [features, settings] = await Promise.all([getFeatures(), loadStoreSettings()]);
 
