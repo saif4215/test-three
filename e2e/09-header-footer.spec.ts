@@ -41,7 +41,7 @@ async function putThingsBack(page: Page, collectionPath: string) {
   await page.waitForLoadState("networkidle");
   await page.selectOption("#status", "draft");
   await page.getByRole("button", { name: "Save collection" }).click();
-  await page.waitForLoadState("networkidle");
+  await page.waitForURL(/saved=1/); // the save redirects here once it has gone through
 }
 
 test.describe.serial("header and footer with every link present", () => {
@@ -92,7 +92,6 @@ test.describe.serial("header and footer with every link present", () => {
 
   test("put things back for the rest of the suite", async ({ page }) => {
     await putThingsBack(page, collectionPath);
-    await page.goto("/");
-    await expect(page.getByRole("navigation", { name: "Main" }).getByRole("link", { name: "Collections" })).toHaveCount(0);
+    await expect.poll(async () => (await (await page.request.get("/")).text()).includes('href="/collections"')).toBeFalsy();
   });
 });
