@@ -35,7 +35,8 @@ export default async function StoreLayout({ children }: { children: React.ReactN
   const links: NavLink[] = [
     { href: "/shop", label: "Shop all" },
     { href: "/shop?sort=newest", label: "New" },
-    ...live.slice(0, 3).map((c) => ({ href: `/category/${c.slug}`, label: c.name })),
+    // The third category only fits beside the other links on very wide screens (see `optional`).
+    ...live.slice(0, 3).map((c, i) => ({ href: `/category/${c.slug}`, label: c.name, optional: i >= 2 })),
     ...(collections.length ? [{ href: "/collections", label: "Collections" }] : []),
     ...(uniformsAvailable ? [{ href: "/uniforms", label: content.uniforms.title || "Uniforms" }] : []),
     ...(sale ? [{ href: "/shop?sale=1", label: "Sale", tone: "sale" as const }] : []),
@@ -91,13 +92,13 @@ export default async function StoreLayout({ children }: { children: React.ReactN
           </Link>
           <nav aria-label="Main" className="hidden flex-1 items-center justify-center gap-1 whitespace-nowrap xl:flex">
             {links.map((l) => (
-              <Link key={l.href} href={l.href} className={`rounded-full px-3 py-2 text-base font-medium transition hover:bg-soft lg:px-4 ${l.tone === "sale" ? "text-danger" : ""}`}>
+              <Link key={l.href} href={l.href} className={`rounded-full px-2.5 py-2 text-base font-medium transition hover:bg-soft 2xl:px-4 ${l.optional ? "max-2xl:hidden" : ""} ${l.tone === "sale" ? "text-danger" : ""}`}>
                 {l.label}
               </Link>
             ))}
           </nav>
           <div className="ml-auto flex items-center gap-1">
-            <SearchBox id="search-header" className="hidden w-48 md:block xl:w-56" />
+            <SearchBox id="search-header" className="hidden w-48 md:block 2xl:w-56" />
             {features.wishlist ? <FavLink /> : null}
             {features.cart ? <BagLink /> : null}
             <MobileNav links={links} secondary={secondary} />
@@ -145,7 +146,7 @@ export default async function StoreLayout({ children }: { children: React.ReactN
             <h2 className="text-xs font-semibold uppercase tracking-wider text-white">Shop</h2>
             <ul className="mt-4 space-y-2.5 text-sm text-white/70">
               <li><Link href="/shop" className="hover:text-white">Shop all</Link></li>
-              {live.slice(0, 6).map((c) => (
+              {live.filter((c) => !(c.slug === "uniforms" && uniformsAvailable)).slice(0, 6).map((c) => (
                 <li key={c.id}><Link href={`/category/${c.slug}`} className="hover:text-white">{c.name}</Link></li>
               ))}
               {uniformsAvailable ? <li><Link href="/uniforms" className="hover:text-white">{content.uniforms.title || "Uniforms"}</Link></li> : null}
