@@ -4,6 +4,7 @@ import { query, tx } from "../db";
 import { audit, type Actor } from "../audit";
 import { UserError } from "../errors";
 import { slugify } from "../util";
+import { issueMessage } from "../zod-message";
 
 export interface AdminCollection {
   id: string;
@@ -47,7 +48,7 @@ export async function getAdminCollection(id: string): Promise<AdminCollection | 
 
 export async function saveCollection(raw: unknown, actor: Actor, ip: string | null = null): Promise<string> {
   const parsed = collectionInputSchema.safeParse(raw);
-  if (!parsed.success) throw new UserError(parsed.error.issues[0].message);
+  if (!parsed.success) throw new UserError(issueMessage(parsed.error.issues[0]));
   const i = parsed.data;
   if (i.startsAt && i.endsAt && i.endsAt <= i.startsAt) throw new UserError("“Ends” must be after “Starts”.");
   return tx(async (c) => {

@@ -284,3 +284,28 @@ describe("editable content", () => {
     expect((await getPublicPolicy("returns"))?.body_md).toContain("14 days");
   });
 });
+
+describe("client addresses for rate limits can't be forged", () => {
+  it("uses the address our own proxy added, never the left-most value the visitor sent", async () => {
+    const { pickClientIp } = await import("../src/lib/rate-limit");
+    // A visitor sends "1.1.1.1"; our single proxy appends the real address it saw.
+    expect(pickClientIp("1.1.1.1, 203.0.113.9", null, 1)).toBe("203.0.113.9");
+    expect(pickClientIp("203.0.113.9", null, 1)).toBe("203.0.113.9");
+    // Two proxies in front (for example a CDN and a load balancer): the address the first one saw.
+    expect(pickClientIp("1.1.1.1, 203.0.113.9, 10.0.0.2", null, 2)).toBe("203.0.113.9");
+    // Fewer entries than hops: take what exists.
+    expect(pickClientIp("203.0.113.9", null, 3)).toBe("203.0.113.9");
+  });
+
+  it("ignores the forwarding headers completely when no proxy is trusted", async () => {
+    const { pickClientIp } = await import("../src/lib/rate-limit");
+    expect(pickClientIp("6.6.6.6", "7.7.7.7", 0)).toBe("unknown");
+  });
+
+  it("falls back to X-Real-IP, then to 'unknown', and bounds the length", async () => {
+    const { pickClientIp } = await import("../src/lib/rate-limit");
+    expect(pickClientIp(null, "198.51.100.4", 1)).toBe("198.51.100.4");
+    expect(pickClientIp(null, null, 1)).toBe("unknown");
+    expect(pickClientIp("a".repeat(500), null, 1)).toHaveLength(64);
+  });
+});

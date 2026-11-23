@@ -65,8 +65,8 @@ Each is off until its keys are set on the server **and** *Settings → Integrati
 - US dollars only. No tax calculation. Delivery is up to four fixed-fee options you define; there are no carrier rates.
 - **Refunds are done in Stripe.** The store flags a payment that arrives after an order was cancelled so you can refund it.
 - Customer accounts are Google sign-in only (no customer passwords). Guest checkout always works.
-- Unpaid card orders release their stock when Stripe reports the payment page expired, and also after 2 hours whenever someone opens the Dashboard or Orders page. There is no background scheduler. If you want one, call that clean-up from a cron job.
-- The small rate-limit table is never trimmed automatically (it grows slowly). `pruneRateLimits()` in `src/lib/rate-limit.ts` is ready to call from a scheduled job.
+- Housekeeping is automatic but needs traffic: unpaid card orders release their stock after 2 hours, and expired sessions, reset links and old counters are cleared, by a job that runs from the `/api/health` check at most every five minutes. Point your host's health check at that address (most do by default).
+- Rate limits trust the address your proxy adds to `X-Forwarded-For` (`TRUSTED_PROXY_HOPS`, default 1). If you run the app without a proxy, set it to 0.
 - Favourites live in each visitor's browser, not on the server.
 
 ## Open decisions

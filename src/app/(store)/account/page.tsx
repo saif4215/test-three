@@ -21,8 +21,8 @@ export default async function AccountPage() {
   const settings = await getStoreSettings();
   // The email address was verified by Google, so orders placed as a guest with the same address belong to this person too.
   const orders = (
-    await query<{ id: string; order_number: string; status: OrderStatus; total_cents: number; created_at: Date; items: number }>(
-      `select o.id, o.order_number, o.status, o.total_cents, o.created_at,
+    await query<{ id: string; order_number: string; status: OrderStatus; total_cents: number; created_at: Date; access_expires_at: Date; items: number }>(
+      `select o.id, o.order_number, o.status, o.total_cents, o.created_at, o.access_expires_at,
               (select coalesce(sum(i.quantity), 0)::int from order_items i where i.order_id = o.id) as items
          from orders o where o.customer_id = $1 or lower(o.customer_email) = lower($2)
         order by o.created_at desc limit 50`,
@@ -42,22 +42,35 @@ export default async function AccountPage() {
         </EmptyState>
       ) : (
         <ul className="divide-y divide-line rounded-2xl border border-line">
-          {orders.map((o) => (
-            <li key={o.id}>
-              <Link href={trackingPath(o.order_number, o.id)} className="flex flex-wrap items-center justify-between gap-3 px-5 py-4 transition hover:bg-soft">
+          {orders.map((o) => {
+            const open = o.access_expires_at > new Date(); // the private tracking link stops working after a while
+            const row = (
+              <>
                 <span>
                   <span className="block font-semibold">{o.order_number}</span>
                   <span className="text-sm text-muted">
                     {formatDate(o.created_at, settings.timezone)} · {o.items} item{o.items === 1 ? "" : "s"}
+                    {open ? "" : " · tracking page has expired"}
                   </span>
                 </span>
                 <span className="flex items-center gap-4">
                   <StatusBadge status={o.status} />
                   <Price cents={o.total_cents} className="font-semibold" />
                 </span>
-              </Link>
-            </li>
-          ))}
+              </>
+            );
+            return (
+              <li key={o.id}>
+                {open ? (
+                  <Link href={trackingPath(o.order_number, o.id)} className="flex flex-wrap items-center justify-between gap-3 px-5 py-4 transition hover:bg-soft">
+                    {row}
+                  </Link>
+                ) : (
+                  <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">{row}</div>
+                )}
+              </li>
+            );
+          })}
         </ul>
       )}
 
