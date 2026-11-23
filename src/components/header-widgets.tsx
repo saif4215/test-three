@@ -160,6 +160,8 @@ export interface NavLink {
   href: string;
   label: string;
   tone?: "sale";
+  /** Left out of the one-row header on laptop-sized screens (it is still in the phone menu and the footer). */
+  optional?: boolean;
 }
 
 /** The phone menu: big bold links on a full-height panel. */
