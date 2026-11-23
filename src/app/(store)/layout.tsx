@@ -92,13 +92,13 @@ export default async function StoreLayout({ children }: { children: React.ReactN
           </Link>
           <nav aria-label="Main" className="hidden flex-1 items-center justify-center gap-1 whitespace-nowrap xl:flex">
             {links.map((l) => (
-              <Link key={l.href} href={l.href} className={`rounded-full px-3 py-2 text-base font-medium transition hover:bg-soft lg:px-4 ${l.optional ? "max-2xl:hidden" : ""} ${l.tone === "sale" ? "text-danger" : ""}`}>
+              <Link key={l.href} href={l.href} className={`rounded-full px-2.5 py-2 text-base font-medium transition hover:bg-soft 2xl:px-4 ${l.optional ? "max-2xl:hidden" : ""} ${l.tone === "sale" ? "text-danger" : ""}`}>
                 {l.label}
               </Link>
             ))}
           </nav>
           <div className="ml-auto flex items-center gap-1">
-            <SearchBox id="search-header" className="hidden w-48 md:block xl:w-56" />
+            <SearchBox id="search-header" className="hidden w-48 md:block 2xl:w-56" />
             {features.wishlist ? <FavLink /> : null}
             {features.cart ? <BagLink /> : null}
             <MobileNav links={links} secondary={secondary} />
