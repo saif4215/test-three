@@ -28,7 +28,8 @@ async function placeRequestOrder(page: Page): Promise<string> {
   await page.getByRole("checkbox").check();
   await page.getByRole("button", { name: /submit order request/i }).click();
   await page.waitForURL(/\/track\//);
-  return (await page.getByRole("heading", { level: 1 }).first().innerText()).trim();
+  // Read the order number from the address, not the page: the tracking page is rate-limited, and a long test run shares one visitor address.
+  return decodeURIComponent(new URL(page.url()).pathname.split("/").pop() ?? "");
 }
 
 test.describe("simple to use", () => {
