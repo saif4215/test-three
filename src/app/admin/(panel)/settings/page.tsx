@@ -28,7 +28,7 @@ export default async function SettingsPage() {
     let blocked: string | null = null;
     if (def.requires && !states[def.requires].verified) blocked = `${INTEGRATION_LABELS[def.requires]} must be configured and verified (see Integrations below).`;
     else if (def.dependsOn && !effective[def.dependsOn as FeatureKey]) blocked = `“${FEATURES[def.dependsOn as FeatureKey].label}” must be on and working.`;
-    return { key: k, label: def.label, description: def.description, stored: stored[k], effective: effective[k], blocked, affectsOrders: !!def.affectsOrders };
+    return { key: k, label: def.label, description: def.description, stored: stored[k], effective: effective[k], blocked, affectsOrders: !!def.affectsOrders, hardRequires: !!(def.requires || def.dependsOn) };
   });
   const win = settings.orderWindow;
   const wm = orderWindowMessages(win, settings.timezone);

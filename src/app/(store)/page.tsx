@@ -62,6 +62,8 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   const seen = new Set<string>();
   const picks = [...featuredRaw, ...arrivals].filter((p) => (p.image && !seen.has(p.id) ? (seen.add(p.id), true) : false)).slice(0, 3);
   const hasProducts = featuredRaw.length + arrivals.length > 0;
+  // On an empty store, a signed-in team member is shown what to do next (shoppers just see "coming soon").
+  const emptyStoreAdmin = hasProducts ? null : await getAdmin();
   const ctaHref = safeUrl(content.hero.ctaHref) ?? "/shop";
   const uniformsUrl = safeUrl(settings.uniformsUrl);
   const uniformsReady = !!content.uniforms.intro.trim() || !!content.uniforms.sizeChartAssetId || !!uniformsUrl || uniformProducts;
@@ -158,6 +160,15 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
           <section className="rounded-2xl bg-soft px-6 py-20 text-center">
             <h2 className="display text-5xl sm:text-7xl">Coming soon</h2>
             <p className="mx-auto mt-4 max-w-md text-muted">The store is getting ready. Please check back shortly.</p>
+            {emptyStoreAdmin ? (
+              <div className="mx-auto mt-8 max-w-md border-t border-line pt-6">
+                <p className="text-sm text-muted">Only you and your team see this part. Shoppers see “Coming soon” until there are products.</p>
+                <div className="mt-4 flex flex-wrap justify-center gap-3">
+                  <Link href="/admin/products/new" className="btn-primary">Add your first product</Link>
+                  <Link href="/admin" className="btn-secondary">Or try sample products</Link>
+                </div>
+              </div>
+            ) : null}
           </section>
         ) : null}
 

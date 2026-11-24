@@ -6,6 +6,8 @@ import { adminAction, fd, UserError, type ActionState } from "@/lib/actions";
 import { deleteProduct, duplicateProduct, saveProduct, setProductStatus, setStock } from "@/lib/catalog/admin";
 import { planImport, runImport } from "@/lib/catalog/import";
 import { notifyRestocked } from "@/lib/restock";
+import { audit } from "@/lib/audit";
+import { addSampleProducts, removeSampleProducts } from "@/lib/demo-data";
 import { isUuid } from "@/lib/util";
 
 const label = (a: { email: string; id: string }) => ({ id: a.id, label: a.email });
@@ -103,5 +105,27 @@ export async function importRunAction(_prev: ActionState, form: FormData): Promi
     return `Imported ${r.created} product${r.created === 1 ? "" : "s"} as drafts${r.categories ? ` and created ${r.categories} categor${r.categories === 1 ? "y" : "ies"}` : ""}. Add photos and publish them when they’re ready.`;
   });
   if (res.ok) revalidatePath("/admin/products");
+  return res;
+}
+
+/** One-click sample products, so a brand-new store can be seen with something in it. */
+export async function addSampleProductsAction(): Promise<ActionState> {
+  const res = await adminAction("products.manage", async (admin, ip) => {
+    const count = await addSampleProducts(label(admin));
+    if (count === 0) throw new UserError("Sample products are already in the store.");
+    await audit(label(admin), "sample.add", "product", "", { count }, ip);
+    return `Added ${count} sample products. They are labelled “Sample” and can be removed in one click.`;
+  });
+  if (res.ok) revalidatePath("/admin", "layout");
+  return res;
+}
+
+export async function removeSampleProductsAction(): Promise<ActionState> {
+  const res = await adminAction("products.manage", async (admin, ip) => {
+    const r = await removeSampleProducts();
+    await audit(label(admin), "sample.remove", "product", "", { products: r.products }, ip);
+    return `Removed ${r.products} sample products.`;
+  });
+  if (res.ok) revalidatePath("/admin", "layout");
   return res;
 }

@@ -11,8 +11,12 @@ const num = (name: string, fallback: number) => {
 };
 
 export const env = {
+  /**
+   * The public address of the site. APP_URL wins; otherwise the address the host provides (Render sets
+   * RENDER_EXTERNAL_URL on every web service), so a Render deploy needs no address typed in.
+   */
   get appUrl() {
-    return str("APP_URL", "http://localhost:3000").replace(/\/+$/, "");
+    return (str("APP_URL") || str("RENDER_EXTERNAL_URL") || "http://localhost:3000").replace(/\/+$/, "");
   },
   get secureCookies() {
     return this.appUrl.startsWith("https://");

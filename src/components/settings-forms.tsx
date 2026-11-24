@@ -11,26 +11,42 @@ export interface FeatureRow {
   effective: boolean;
   blocked: string | null;
   affectsOrders: boolean;
+  /** Needs an outside service or another feature, whether or not that is ready yet. */
+  hardRequires: boolean;
 }
 
 export function FeaturesForm({ rows }: { rows: FeatureRow[] }) {
+  // Most stores only ever need the first group. The second needs an outside service (email, Stripe, Google, AI), so it stays folded away.
+  const everyday = rows.filter((r) => !r.blocked && !r.hardRequires);
+  const services = rows.filter((r) => r.blocked || r.hardRequires);
+  const row = (r: FeatureRow) => (
+    <li key={r.key} className="py-3.5">
+      <label className="flex cursor-pointer items-start gap-3">
+        <input type="checkbox" name={`f.${r.key}`} defaultChecked={r.stored} className="mt-1 size-5 shrink-0 accent-[var(--brand)]" />
+        <span>
+          <span className="font-medium">{r.label}</span>
+          {r.stored && !r.effective ? <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-900">switched on but not working yet</span> : null}
+          <span className="block text-sm text-muted">{r.description}</span>
+          {r.blocked ? <span className="mt-1 block text-sm text-warn">Before you can turn this on: {r.blocked}</span> : null}
+        </span>
+      </label>
+    </li>
+  );
   return (
     <ActionForm action={saveFeaturesAction} className="space-y-3">
-      <ul className="divide-y divide-line">
-        {rows.map((r) => (
-          <li key={r.key} className="py-3.5">
-            <label className="flex cursor-pointer items-start gap-3">
-              <input type="checkbox" name={`f.${r.key}`} defaultChecked={r.stored} className="mt-1 size-5 shrink-0 accent-[var(--brand)]" />
-              <span>
-                <span className="font-medium">{r.label}</span>
-                {r.stored && !r.effective ? <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-900">switched on but not working yet</span> : null}
-                <span className="block text-sm text-muted">{r.description}</span>
-                {r.blocked ? <span className="mt-1 block text-sm text-warn">Before you can turn this on: {r.blocked}</span> : null}
-              </span>
-            </label>
-          </li>
-        ))}
-      </ul>
+      <p className="text-sm text-muted">Most stores only need these. Tick what you want, then save.</p>
+      <ul className="divide-y divide-line">{everyday.map(row)}</ul>
+      {services.length > 0 ? (
+        <details id="services" open={services.some((r) => r.stored)} className="group rounded-2xl border border-line px-5">
+          <summary className="flex cursor-pointer list-none items-center justify-between py-4 font-medium">
+            <span>
+              Connect other services <span className="font-normal text-muted">(optional: card payments, email, Google sign-in, writing assistant)</span>
+            </span>
+            <span aria-hidden="true" className="text-muted transition group-open:rotate-180">⌄</span>
+          </summary>
+          <ul className="divide-y divide-line border-t border-line">{services.map(row)}</ul>
+        </details>
+      ) : null}
       <SubmitButton pendingLabel="Saving…">Save feature switches</SubmitButton>
     </ActionForm>
   );

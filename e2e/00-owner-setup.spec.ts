@@ -6,6 +6,8 @@ test.describe.configure({ mode: "serial" });
 
 const card = (page: Page, title: string) => page.locator("li", { has: page.getByRole("heading", { name: title }) });
 const feature = (page: Page, key: string) => page.locator(`input[name="f.${key}"]`);
+/** The switches that need an outside service sit in a folded section ("Connect other services"); open it. */
+const openServices = (page: Page) => page.locator("#services").evaluate((el) => ((el as HTMLDetailsElement).open = true));
 
 async function saveFeatures(page: Page) {
   await page.getByRole("button", { name: "Save feature switches" }).click();
@@ -59,6 +61,7 @@ test("the admin area is closed to visitors and to people without the right role"
 test("switching on a feature that needs an outside service is refused until a real test passes", async ({ page }) => {
   await adminLogin(page);
   await page.goto("/admin/settings");
+  await openServices(page);
   await feature(page, "online_payments").check();
   await saveFeatures(page);
   await expect(alertOf(page).first()).toContainText(/needs .*Stripe.* to be configured and verified/i);
@@ -79,6 +82,7 @@ test("the owner verifies each outside service for real", async ({ page }) => {
 test("features switch on once verified, and the live store changes immediately", async ({ page, request }) => {
   await adminLogin(page);
   await page.goto("/admin/settings");
+  await openServices(page);
   for (const key of ["order_requests", "online_payments", "email_notifications", "restock_alerts", "promotions", "ai_assistant", "customer_sign_in", "admin_google_sign_in"]) {
     await feature(page, key).check();
   }
