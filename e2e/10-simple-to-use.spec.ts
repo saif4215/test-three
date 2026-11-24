@@ -105,7 +105,9 @@ test.describe("simple to use", () => {
     await page.goto("/admin");
     await expect(page.getByRole("heading", { name: "Sample products" })).toBeVisible();
     await page.getByRole("button", { name: "Remove all sample products" }).click();
-    await expect(page.getByRole("status").filter({ hasText: /Removed \d+ sample products/ })).toBeVisible();
+    await expect(page.getByRole("status").filter({ hasText: "Sample products removed." })).toBeVisible();
+    // The note is on the Dashboard itself, so it is still there even though the card with the button is gone.
+    await expect(page.getByRole("button", { name: "Remove all sample products" })).toHaveCount(0);
     await expect.poll(async () => (await (await page.request.get("/shop")).text()).includes("Sample Polo Shirt")).toBeFalsy();
   });
 });

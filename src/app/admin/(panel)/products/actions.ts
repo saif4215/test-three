@@ -108,24 +108,27 @@ export async function importRunAction(_prev: ActionState, form: FormData): Promi
   return res;
 }
 
-/** One-click sample products, so a brand-new store can be seen with something in it. */
+/**
+ * One-click sample products, so a brand-new store can be seen with something in it. After either one the Dashboard is
+ * shown again with a note (in the address), because the card that held the button may no longer be there to show it.
+ */
 export async function addSampleProductsAction(): Promise<ActionState> {
   const res = await adminAction("products.manage", async (admin, ip) => {
     const count = await addSampleProducts(label(admin));
     if (count === 0) throw new UserError("Sample products are already in the store.");
     await audit(label(admin), "sample.add", "product", "", { count }, ip);
-    return `Added ${count} sample products. They are labelled “Sample” and can be removed in one click.`;
   });
-  if (res.ok) revalidatePath("/admin", "layout");
-  return res;
+  if (!res.ok) return res;
+  revalidatePath("/admin", "layout");
+  redirect("/admin?notice=samples-added");
 }
 
 export async function removeSampleProductsAction(): Promise<ActionState> {
   const res = await adminAction("products.manage", async (admin, ip) => {
     const r = await removeSampleProducts();
     await audit(label(admin), "sample.remove", "product", "", { products: r.products }, ip);
-    return `Removed ${r.products} sample products.`;
   });
-  if (res.ok) revalidatePath("/admin", "layout");
-  return res;
+  if (!res.ok) return res;
+  revalidatePath("/admin", "layout");
+  redirect("/admin?notice=samples-removed");
 }

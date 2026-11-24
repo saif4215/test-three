@@ -19,7 +19,13 @@ import { SampleProducts } from "@/components/sample-products";
 
 export const metadata = { title: "Dashboard" };
 
-export default async function DashboardPage() {
+const NOTICES: Record<string, string> = {
+  "samples-added": "Sample products added. They are labelled “Sample” and can be removed in one click.",
+  "samples-removed": "Sample products removed.",
+};
+
+export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ notice?: string }> }) {
+  const notice = NOTICES[(await searchParams).notice ?? ""];
   const admin = await requireAdmin();
   await cancelAbandonedOnlineOrders().catch(() => 0);
   const settings = await loadStoreSettings();
@@ -60,6 +66,12 @@ export default async function DashboardPage() {
       >
         Here’s how the store looks right now.
       </AdminHeading>
+
+      {notice ? (
+        <div className="mb-6">
+          <Alert tone="ok">{notice}</Alert>
+        </div>
+      ) : null}
 
       {siteCheck && siteCheck.worst !== "ok" ? (
         <div className="mb-6">
