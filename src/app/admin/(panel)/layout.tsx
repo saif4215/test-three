@@ -40,6 +40,7 @@ export default async function PanelLayout({ children }: { children: React.ReactN
         ...item("/admin/content/pages", "Policy pages", "content.manage"),
         ...item("/admin/ai", "Writing assistant", "ai.use"),
         ...item("/admin/team", "Team", "team.manage"),
+        ...item("/admin/site-check", "Site check", "settings.manage"),
         ...item("/admin/emails", "Email log", "settings.manage"),
         ...item("/admin/audit", "Activity log", "audit.view"),
       ],

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { headers } from "next/headers";
 import { requireAdmin } from "@/lib/auth";
 import { can } from "@/lib/permissions";
 import { getFeatures, loadStoreSettings, orderingStatus } from "@/lib/settings";
@@ -9,9 +10,11 @@ import { formatDateTime } from "@/lib/format";
 import type { OrderStatus } from "@/lib/orders/status";
 import { cancelAbandonedOnlineOrders } from "@/lib/orders/manage";
 import { hasSampleProducts } from "@/lib/demo-data";
+import { getSiteCheck, seenFromHeaders } from "@/lib/site-check";
 import { AdminHeading, Section, StatCard } from "@/components/admin-ui";
 import { StatusBadge } from "@/components/status-badge";
 import { Icon } from "@/components/icons";
+import { Alert } from "@/components/ui";
 import { SampleProducts } from "@/components/sample-products";
 
 export const metadata = { title: "Dashboard" };
@@ -30,6 +33,9 @@ export default async function DashboardPage() {
     hasSampleProducts(),
   ]);
   const ordering = orderingStatus(features, settings);
+  // Only the owner can fix server settings, so only the owner is told when something there needs a look.
+  const h = await headers();
+  const siteCheck = can(admin.role, "settings.manage") ? await getSiteCheck(seenFromHeaders((n) => h.get(n))).catch(() => null) : null;
   const checklist = [
     { done: data.products.published > 0, label: "Publish your first product", href: "/admin/products/new" },
     { done: !!(content.contact.email || content.contact.phone || content.contact.address), label: "Add approved contact information", href: "/admin/content" },
@@ -54,6 +60,14 @@ export default async function DashboardPage() {
       >
         Here’s how the store looks right now.
       </AdminHeading>
+
+      {siteCheck && siteCheck.worst !== "ok" ? (
+        <div className="mb-6">
+          <Alert tone={siteCheck.worst === "problem" ? "danger" : "warn"} title={`The site check found ${siteCheck.needAttention} ${siteCheck.needAttention === 1 ? "thing" : "things"} to look at`}>
+            <Link href="/admin/site-check" className="underline underline-offset-4">Open Site check</Link> to see what it means and what to do.
+          </Alert>
+        </div>
+      ) : null}
 
       <div className="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard label="Products" value={data.products.total} hint={`${data.products.published} published · ${data.products.drafts} drafts`} />
