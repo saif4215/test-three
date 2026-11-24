@@ -4,6 +4,9 @@ import { adminLogin } from "./helpers";
 test.describe.configure({ mode: "serial" });
 
 const adminNav = (page: Page) => page.getByRole("navigation", { name: "Admin" });
+const escapeRe = (t: string) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+/** A menu link by its label; Orders carries a count badge ("Orders 2"), so allow a trailing number. */
+const menuLink = (page: Page, name: string) => adminNav(page).getByRole("link", { name: new RegExp(`^${escapeRe(name)}(\\s\\d+)?$`) });
 
 async function placeRequestOrder(page: Page): Promise<string> {
   await page.goto("/products/sample-polo-shirt");
@@ -32,29 +35,28 @@ test.describe("simple to use", () => {
   test("the admin menu keeps everyday jobs in view and tucks the rest under More", async ({ page }) => {
     await adminLogin(page);
     await page.goto("/admin");
-    const nav = adminNav(page);
     for (const name of ["Dashboard", "Orders", "Products", "Inventory", "Homepage & content", "Settings"]) {
-      await expect(nav.getByRole("link", { name, exact: true })).toBeVisible();
+      await expect(menuLink(page, name)).toBeVisible();
     }
     // The rest is folded away until asked for.
-    await expect(nav.getByRole("link", { name: "Team", exact: true })).toBeHidden();
-    await expect(nav.getByRole("link", { name: "Promotions", exact: true })).toBeHidden();
-    await nav.getByText("More", { exact: true }).click();
+    await expect(menuLink(page, "Team")).toBeHidden();
+    await expect(menuLink(page, "Promotions")).toBeHidden();
+    await adminNav(page).getByText("More", { exact: true }).click();
     for (const name of ["Categories", "Collections", "Promotions", "Analytics", "Announcements", "Policy pages", "Writing assistant", "Team", "Email log", "Activity log"]) {
-      await expect(nav.getByRole("link", { name, exact: true })).toBeVisible();
+      await expect(menuLink(page, name)).toBeVisible();
     }
   });
 
   test("More opens by itself on a page that lives inside it", async ({ page }) => {
     await adminLogin(page);
     await page.goto("/admin/team");
-    const link = adminNav(page).getByRole("link", { name: "Team", exact: true });
+    const link = menuLink(page, "Team");
     await expect(link).toBeVisible();
     await expect(link).toHaveAttribute("aria-current", "page");
     await page.goto("/admin/content/announcements");
-    await expect(adminNav(page).getByRole("link", { name: "Announcements", exact: true })).toHaveAttribute("aria-current", "page");
+    await expect(menuLink(page, "Announcements")).toHaveAttribute("aria-current", "page");
     // "Homepage & content" does not light up as well.
-    await expect(adminNav(page).getByRole("link", { name: "Homepage & content", exact: true })).not.toHaveAttribute("aria-current", "page");
+    await expect(menuLink(page, "Homepage & content")).not.toHaveAttribute("aria-current", "page");
   });
 
   test("an order moves forward with one button in the list: Confirm, Mark ready, Mark completed", async ({ page }) => {
