@@ -3,7 +3,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { adminLogin } from "./helpers";
 
 const publicPages = ["/", "/shop", "/products/sample-polo-shirt", "/cart", "/track", "/contact", "/wishlist", "/account/login", "/category/accessories"];
-const adminPages = ["/admin", "/admin/products", "/admin/products/new", "/admin/products/import", "/admin/orders", "/admin/orders/packing-list", "/admin/inventory", "/admin/promotions", "/admin/analytics", "/admin/content", "/admin/content/announcements", "/admin/content/pages", "/admin/settings", "/admin/team", "/admin/ai", "/admin/audit", "/admin/emails"];
+const adminPages = ["/admin", "/admin/products", "/admin/products/new", "/admin/products/import", "/admin/orders", "/admin/orders/packing-list", "/admin/inventory", "/admin/promotions", "/admin/analytics", "/admin/content", "/admin/content/announcements", "/admin/content/pages", "/admin/settings", "/admin/team", "/admin/ai", "/admin/audit", "/admin/emails", "/admin/site-check"];
 
 async function violations(page: Page) {
   const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"]).analyze();

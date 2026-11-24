@@ -47,6 +47,10 @@ A new store is **browse-only**: open *Admin → Settings → Feature switches* a
 
 Rate limits use the visitor's address. Run the app behind your host's proxy (which appends it to `X-Forwarded-For`); `TRUSTED_PROXY_HOPS` (default 1) says how many proxies to trust, and `0` ignores the header when the app is reached directly. The address a visitor forges at the start of that header is never used.
 
+**Site check.** In the admin area (Owner only; under **More**) there is a **Site check** page that says in plain words whether the site is set up properly: the database, whether the site knows its own address, whether uploaded pictures can be saved (and will survive a restart), and whether the automatic housekeeping is running, each with what to do if not. The Dashboard points the Owner to it when something needs a look.
+
+The container starts as root only to make a mounted pictures disk writable (a disk mounted by the host is often owned by root), then runs the app as the unprivileged `node` user (`scripts/docker-entrypoint.sh`).
+
 Point your host's health check at `/api/health`: it also runs the small housekeeping job (cancels abandoned card orders, clears expired sessions and old counters) at most once every five minutes.
 
 ## Turning on the outside services

@@ -30,6 +30,11 @@ export async function POST(req: NextRequest) {
   } catch (e) {
     if (isExpected(e)) return NextResponse.json({ error: (e as Error).message }, { status: 400 });
     console.error("[upload]", e);
+    // A server that can't write to its picture folder fails the same way every time: say so, and where to look.
+    const code = (e as NodeJS.ErrnoException)?.code;
+    if (code && ["EACCES", "EPERM", "EROFS", "ENOSPC", "ENOENT", "ENOTDIR"].includes(code)) {
+      return NextResponse.json({ error: "The server couldn’t save the picture. Ask the site’s Owner to open Site check in the admin menu." }, { status: 500 });
+    }
     return NextResponse.json({ error: "The upload failed. Please try again." }, { status: 500 });
   }
 }

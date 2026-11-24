@@ -13,6 +13,8 @@ Everything you need to take this over. For commands and set-up details see `READ
 
 The shop contains **no real products, prices, policies, contact details or logos**. The 8 "Sample" items are added with the **Add sample products** button on the admin Dashboard (or `npm run db:seed:demo`) and removed with **Remove all sample products** (or `npm run db:unseed:demo`).
 
+**If something seems wrong after deploying:** open **More → Site check** in the admin area first. It checks the database, the site address, picture storage and the automatic housekeeping, and says what to do about each.
+
 ## Launch checklist (in this order)
 
 1. **Host it.** A managed PostgreSQL database, the app (Docker or `npm run build && npm start`), and somewhere persistent for pictures (a disk or an S3-compatible bucket). Set `DATABASE_URL`, `APP_URL` (the public `https://` address; on Render it is automatic) and `APP_SECRET` (32+ random characters). On Render, the Blueprint in `render.yaml` does all of this for you and asks nothing.
