@@ -15,13 +15,35 @@ export default async function PanelLayout({ children }: { children: React.ReactN
   const counts = can(admin.role, "orders.view") ? await orderStatusCounts() : {};
   const pending = (counts.pending ?? 0) + (counts.awaiting_payment ?? 0);
   const item = (href: string, label: string, perm: Permission, badge?: number) => (can(admin.role, perm) ? [{ href, label, badge }] : []);
+  // The everyday jobs are always on show; the rest sit under "More", which opens by itself on those pages.
   const groups: NavGroup[] = [
-    { title: "Overview", items: [{ href: "/admin", label: "Dashboard" }] },
-    { title: "Catalog", items: [...item("/admin/products", "Products", "products.view"), ...item("/admin/categories", "Categories", "products.manage"), ...item("/admin/collections", "Collections", "products.manage"), ...item("/admin/inventory", "Inventory", "products.view")] },
-    { title: "Sales", items: [...item("/admin/orders", "Orders", "orders.view", pending), ...item("/admin/promotions", "Promotions", "promotions.manage"), ...item("/admin/analytics", "Analytics", "analytics.view")] },
-    { title: "Website", items: [...item("/admin/content", "Homepage & content", "content.manage"), ...item("/admin/content/announcements", "Announcements", "content.manage"), ...item("/admin/content/pages", "Policy pages", "content.manage")] },
-    { title: "Tools", items: [...item("/admin/ai", "Writing assistant", "ai.use")] },
-    { title: "Administration", items: [...item("/admin/settings", "Settings", "settings.manage"), ...item("/admin/team", "Team", "team.manage"), ...item("/admin/emails", "Email log", "settings.manage"), ...item("/admin/audit", "Activity log", "audit.view")] },
+    {
+      title: "",
+      items: [
+        { href: "/admin", label: "Dashboard" },
+        ...item("/admin/orders", "Orders", "orders.view", pending),
+        ...item("/admin/products", "Products", "products.view"),
+        ...item("/admin/inventory", "Inventory", "products.view"),
+        ...item("/admin/content", "Homepage & content", "content.manage"),
+        ...item("/admin/settings", "Settings", "settings.manage"),
+      ],
+    },
+    {
+      title: "More",
+      collapsed: true,
+      items: [
+        ...item("/admin/categories", "Categories", "products.manage"),
+        ...item("/admin/collections", "Collections", "products.manage"),
+        ...item("/admin/promotions", "Promotions", "promotions.manage"),
+        ...item("/admin/analytics", "Analytics", "analytics.view"),
+        ...item("/admin/content/announcements", "Announcements", "content.manage"),
+        ...item("/admin/content/pages", "Policy pages", "content.manage"),
+        ...item("/admin/ai", "Writing assistant", "ai.use"),
+        ...item("/admin/team", "Team", "team.manage"),
+        ...item("/admin/emails", "Email log", "settings.manage"),
+        ...item("/admin/audit", "Activity log", "audit.view"),
+      ],
+    },
   ].filter((g) => g.items.length > 0);
 
   return (

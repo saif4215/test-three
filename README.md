@@ -35,11 +35,15 @@ A new store is **browse-only**: open *Admin → Settings → Feature switches* a
 
 ## Put it on the internet
 
+**On Render (the short way):** use the **Blueprint** link for this repository (see `render.yaml`). It asks you nothing: the database is created and connected, `APP_SECRET` and the one-time `ADMIN_SETUP_TOKEN` are generated, and the site's address is taken from Render automatically. When it is live, open `your-site/admin/setup`; the page tells you where to find the setup code (Render → the service → Environment → the eye next to `ADMIN_SETUP_TOKEN`). Then sign in, press **Add sample products** on the Dashboard if you want to look around, and follow the checklist there. Optional services (email, card payments, Google, the writing assistant) are added later under Environment and switched on in Admin → Settings.
+
+**Anywhere else:**
+
 1. Use a managed PostgreSQL database and set `DATABASE_URL`.
-2. Set `APP_URL` to the public address (with `https://`), and `APP_SECRET` to 32+ random characters (`openssl rand -base64 48`). Changing `APP_SECRET` invalidates tracking links.
+2. Set `APP_URL` to the public address (with `https://`; on Render it is filled in for you), and `APP_SECRET` to 32+ random characters (`openssl rand -base64 48`). Changing `APP_SECRET` invalidates tracking links.
 3. Pictures: a persistent disk (`UPLOAD_DIR`) or any S3-compatible bucket (`STORAGE_DRIVER=s3`, see `.env.example`).
 4. Build and start: `npm run build && npm run db:migrate && npm run db:seed && npm start`, or use the included `Dockerfile` / `render.yaml` (these two have **not** been run in this build environment: review them first).
-5. Create the first Owner: either run `npm run admin:create` on the server, or set `ADMIN_SETUP_TOKEN` and open `/admin/setup` once (the page closes itself as soon as any administrator exists; remove the token afterwards).
+5. Create the first Owner: either run `npm run admin:create` on the server, or set `ADMIN_SETUP_TOKEN` and open `/admin/setup` once (the page closes itself as soon as any administrator exists, so the token can stay).
 
 Rate limits use the visitor's address. Run the app behind your host's proxy (which appends it to `X-Forwarded-For`); `TRUSTED_PROXY_HOPS` (default 1) says how many proxies to trust, and `0` ignores the header when the app is reached directly. The address a visitor forges at the start of that header is never used.
 

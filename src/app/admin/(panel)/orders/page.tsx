@@ -10,8 +10,16 @@ import { formatMoney } from "@/lib/util";
 import { AdminHeading, DataTable, Td, Th, DownloadLink } from "@/components/admin-ui";
 import { EmptyState, Pagination } from "@/components/ui";
 import { StatusBadge } from "@/components/status-badge";
+import { OrderQuickAction } from "@/components/order-quick-action";
 
 export const metadata = { title: "Orders" };
+
+/** The single most useful next move for an order, shown as a button in the list. Orders waiting for a card payment have none. */
+const NEXT_STEP: Record<string, { to: string; label: string } | undefined> = {
+  pending: { to: "confirmed", label: "Confirm" },
+  confirmed: { to: "ready", label: "Mark ready" },
+  ready: { to: "completed", label: "Mark completed" },
+};
 
 export default async function OrdersPage({ searchParams }: { searchParams: Promise<{ status?: string; q?: string; page?: string }> }) {
   const admin = await requireAdmin("orders.view");
@@ -38,7 +46,7 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
           </>
         }
       >
-        Order requests need your review. Confirmed orders count as sales.
+        Order requests need your review: press Confirm on a row to accept it. Confirmed orders count as sales.
       </AdminHeading>
       <nav aria-label="Order status" className="mb-4 flex flex-wrap gap-2">
         {tab("all", "All", total)}
@@ -53,7 +61,7 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
         <EmptyState title={sp.q || sp.status ? "No orders match" : "No orders yet"}>Orders and order requests appear here as customers place them.</EmptyState>
       ) : (
         <DataTable caption="Orders">
-          <thead><tr><Th>Order</Th><Th>Placed</Th><Th>Customer</Th><Th>Items</Th><Th>Total</Th><Th>Status</Th></tr></thead>
+          <thead><tr><Th>Order</Th><Th>Placed</Th><Th>Customer</Th><Th>Items</Th><Th>Total</Th><Th>Status</Th><Th>Next step</Th></tr></thead>
           <tbody>
             {list.items.map((o) => (
               <tr key={o.id}>
@@ -63,6 +71,7 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
                 <Td>{o.item_count}</Td>
                 <Td className="font-medium">{formatMoney(o.total_cents)}</Td>
                 <Td><StatusBadge status={o.status} /></Td>
+                <Td>{can(admin.role, "orders.manage") && NEXT_STEP[o.status] ? <OrderQuickAction id={o.id} to={NEXT_STEP[o.status]!.to} label={NEXT_STEP[o.status]!.label} /> : <span className="text-muted">—</span>}</Td>
               </tr>
             ))}
           </tbody>

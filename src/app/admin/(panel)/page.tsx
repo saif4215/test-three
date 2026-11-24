@@ -8,9 +8,11 @@ import { formatMoney } from "@/lib/util";
 import { formatDateTime } from "@/lib/format";
 import type { OrderStatus } from "@/lib/orders/status";
 import { cancelAbandonedOnlineOrders } from "@/lib/orders/manage";
+import { hasSampleProducts } from "@/lib/demo-data";
 import { AdminHeading, Section, StatCard } from "@/components/admin-ui";
 import { StatusBadge } from "@/components/status-badge";
 import { Icon } from "@/components/icons";
+import { SampleProducts } from "@/components/sample-products";
 
 export const metadata = { title: "Dashboard" };
 
@@ -18,13 +20,14 @@ export default async function DashboardPage() {
   const admin = await requireAdmin();
   await cancelAbandonedOnlineOrders().catch(() => 0);
   const settings = await loadStoreSettings();
-  const [data, features, content, policies, orders, activity] = await Promise.all([
+  const [data, features, content, policies, orders, activity, hasSamples] = await Promise.all([
     dashboardData(settings.lowStockDefault),
     getFeatures(),
     loadPublishedContent(),
     listPolicyPages(),
     can(admin.role, "orders.view") ? recentOrders(6) : Promise.resolve([]),
     can(admin.role, "audit.view") ? recentActivity(6) : Promise.resolve([]),
+    hasSampleProducts(),
   ]);
   const ordering = orderingStatus(features, settings);
   const checklist = [
@@ -42,7 +45,8 @@ export default async function DashboardPage() {
         title={`Welcome, ${admin.name ? admin.name.split(" ")[0] : "there"}`}
         actions={
           <>
-            {can(admin.role, "products.manage") ? <Link href="/admin/products/new" className="btn-primary btn-sm">Add product</Link> : null}
+            {can(admin.role, "orders.view") && data.orders.pending > 0 ? <Link href="/admin/orders?status=pending" className="btn-primary btn-sm">Review {data.orders.pending} waiting</Link> : null}
+            {can(admin.role, "products.manage") ? <Link href="/admin/products/new" className={data.orders.pending > 0 && can(admin.role, "orders.view") ? "btn-secondary btn-sm" : "btn-primary btn-sm"}>Add product</Link> : null}
             {can(admin.role, "orders.view") ? <Link href="/admin/orders" className="btn-secondary btn-sm">View orders</Link> : null}
             {can(admin.role, "content.manage") ? <Link href="/admin/content" className="btn-secondary btn-sm">Edit homepage</Link> : null}
           </>
@@ -57,6 +61,12 @@ export default async function DashboardPage() {
         <StatCard label="Sales, last 30 days" value={formatMoney(data.orders.revenue30Cents)} hint={`${data.orders.confirmed30} confirmed orders`} />
         <StatCard label="Stock" value={data.stock.outOfStock + data.stock.lowStock} tone={data.stock.outOfStock ? "danger" : data.stock.lowStock ? "warn" : "ok"} hint={`${data.stock.outOfStock} out of stock · ${data.stock.lowStock} low`} />
       </div>
+
+      {can(admin.role, "products.manage") && (hasSamples || data.products.total === 0) ? (
+        <Section title={hasSamples ? "Sample products" : "Try it with sample products"}>
+          <SampleProducts hasSamples={hasSamples} />
+        </Section>
+      ) : null}
 
       {remaining > 0 ? (
         <Section title="Getting the store ready">

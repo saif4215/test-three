@@ -101,6 +101,8 @@ export function describeAction(a: string, detail: Record<string, unknown> = {}):
     "product.archive": "Archived a product",
     "product.duplicate": "Duplicated a product",
     "product.delete": `Deleted product${name}`,
+    "sample.add": `Added ${String(detail.count ?? "")} sample products`,
+    "sample.remove": `Removed ${String(detail.products ?? "")} sample products`,
     "product.import": `Imported ${String(detail.created ?? 0)} products as drafts from a spreadsheet`,
     "inventory.set": `Changed stock${name ? ` of${String(detail.product ? ` “${detail.product}”` : "")}` : ""}: ${String(detail.from)} → ${String(detail.to)}`,
     "order.status": `Order${name}: ${String(detail.from)} → ${String(detail.to)}`,

@@ -11,12 +11,12 @@ Everything you need to take this over. For commands and set-up details see `READ
 | How to run, host and test | `README.md` |
 | Tests | `npm test` (107 unit tests), `npm run e2e` (104 browser tests) |
 
-The shop contains **no real products, prices, policies, contact details or logos**. The 8 "Sample" items come from `npm run db:seed:demo` and are removed with `npm run db:unseed:demo`.
+The shop contains **no real products, prices, policies, contact details or logos**. The 8 "Sample" items are added with the **Add sample products** button on the admin Dashboard (or `npm run db:seed:demo`) and removed with **Remove all sample products** (or `npm run db:unseed:demo`).
 
 ## Launch checklist (in this order)
 
-1. **Host it.** A managed PostgreSQL database, the app (Docker or `npm run build && npm start`), and somewhere persistent for pictures (a disk or an S3-compatible bucket). Set `DATABASE_URL`, `APP_URL` (the public `https://` address) and `APP_SECRET` (32+ random characters).
-2. **Create the first Owner.** `npm run admin:create -- --email … --name "…" --role owner` on the server, or set `ADMIN_SETUP_TOKEN`, open `/admin/setup` once, then remove the token.
+1. **Host it.** A managed PostgreSQL database, the app (Docker or `npm run build && npm start`), and somewhere persistent for pictures (a disk or an S3-compatible bucket). Set `DATABASE_URL`, `APP_URL` (the public `https://` address; on Render it is automatic) and `APP_SECRET` (32+ random characters). On Render, the Blueprint in `render.yaml` does all of this for you and asks nothing.
+2. **Create the first Owner.** `npm run admin:create -- --email … --name "…" --role owner` on the server, or set `ADMIN_SETUP_TOKEN` (Render generates one), open `/admin/setup` once; the page closes itself afterwards.
 3. **Settings → Store details.** Store name, organization name, logo (only an approved file), colours, time zone. The default colours are placeholders.
 4. **Pickup & delivery.** Add only approved options and wording. Nothing is pre-filled.
 5. **Homepage & content.** Add approved contact information. Edit the banner and sections, then Save & publish.

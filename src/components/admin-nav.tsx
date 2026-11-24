@@ -6,8 +6,11 @@ import { useEffect, useRef, useState } from "react";
 import { Icon } from "./icons";
 
 export interface NavGroup {
+  /** Empty for the main list that is always shown. */
   title: string;
   items: { href: string; label: string; badge?: number }[];
+  /** A group shown as a closed "More" section; it opens by itself when you are on one of its pages. */
+  collapsed?: boolean;
 }
 
 function useActive() {
@@ -20,28 +23,41 @@ function Groups({ groups, onNavigate }: { groups: NavGroup[]; onNavigate?: () =>
   // The most specific match wins (so "Announcements" doesn't also light up "Homepage & content").
   const all = groups.flatMap((g) => g.items.map((i) => i.href));
   const best = (href: string) => active(href) && !all.some((o) => o !== href && o.startsWith(`${href}/`) && active(o));
+  const list = (g: NavGroup) => (
+    <ul className="space-y-0.5">
+      {g.items.map((it) => (
+        <li key={it.href}>
+          <Link
+            href={it.href}
+            onClick={onNavigate}
+            aria-current={best(it.href) ? "page" : undefined}
+            className={`flex items-center justify-between rounded-full px-4 py-2 text-[0.9375rem] transition ${best(it.href) ? "bg-ink font-medium text-white" : "hover:bg-soft"}`}
+          >
+            {it.label}
+            {it.badge ? <span className={`ml-2 rounded-full px-2 py-0.5 text-xs font-semibold ${best(it.href) ? "bg-white text-ink" : "bg-ink text-white"}`}>{it.badge}</span> : null}
+          </Link>
+        </li>
+      ))}
+    </ul>
+  );
   return (
     <nav aria-label="Admin" className="space-y-6">
-      {groups.map((g) => (
-        <div key={g.title}>
-          <p className="px-3 pb-2 text-[11px] font-semibold uppercase tracking-wider text-muted">{g.title}</p>
-          <ul className="space-y-0.5">
-            {g.items.map((it) => (
-              <li key={it.href}>
-                <Link
-                  href={it.href}
-                  onClick={onNavigate}
-                  aria-current={best(it.href) ? "page" : undefined}
-                  className={`flex items-center justify-between rounded-full px-4 py-2 text-[0.9375rem] transition ${best(it.href) ? "bg-ink font-medium text-white" : "hover:bg-soft"}`}
-                >
-                  {it.label}
-                  {it.badge ? <span className={`ml-2 rounded-full px-2 py-0.5 text-xs font-semibold ${best(it.href) ? "bg-white text-ink" : "bg-ink text-white"}`}>{it.badge}</span> : null}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
-      ))}
+      {groups.map((g) =>
+        g.collapsed ? (
+          <details key={g.title} open={g.items.some((it) => best(it.href))} className="group">
+            <summary className="flex cursor-pointer list-none items-center justify-between rounded-full px-4 py-2 text-[0.9375rem] font-medium text-muted transition hover:bg-soft hover:text-ink">
+              {g.title}
+              <Icon name="chevron-down" size={18} className="transition group-open:rotate-180" />
+            </summary>
+            <div className="mt-1">{list(g)}</div>
+          </details>
+        ) : (
+          <div key={g.title || "main"}>
+            {g.title ? <p className="px-3 pb-2 text-[11px] font-semibold uppercase tracking-wider text-muted">{g.title}</p> : null}
+            {list(g)}
+          </div>
+        ),
+      )}
     </nav>
   );
 }
